@@ -3,8 +3,12 @@ import 'dart:developer';
 
 import 'package:batterylevel_2/smokesign.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SmokeRepo {
+  static const MethodChannel alarmMethodChannel =
+      MethodChannel("samples.flutter.io/alarm");
   final FirebaseFirestore instance = FirebaseFirestore.instance;
   final StreamController<List<SmokeSign>> smokeSignController =
       StreamController<List<SmokeSign>>.broadcast();
@@ -20,20 +24,21 @@ class SmokeRepo {
   }
 
   void subscribeToSmokeSigns() {
+    debugPrint("SUBSCRIBE TO SMOKE SIGNS");
     instance.collection("SmokeSign").snapshots().listen((snapshot) {
-      final List<SmokeSign> smokeList = [];
-      for (final doc in snapshot.docs) {
-        final smokeSign = SmokeSign.fromMap(doc.data());
-        smokeList.add(smokeSign);
+      if (snapshot.docs.isNotEmpty) {
+        debugPrint("SMOKESIGNS COLLECTION IS NOT EMPTY");
+        setAlarm();
       }
     });
   }
 
   Future<void> createSmokeSign() async {
+    debugPrint("CREATE SMOKE SIGN");
     SmokeSign smokeSign = SmokeSign("pretty SmokeSign");
 
     Map<String, dynamic> smokeMap = smokeSign.toMap();
-    log(smokeMap.toString());
+    debugPrint(smokeMap.toString());
 
     try {
       // Daten in der Firestore-Datenbank speichern
@@ -44,16 +49,27 @@ class SmokeRepo {
     }
   }
 
-  Future<void> deleteSmokeSign(context) async {
+  Future<void> deleteSmokeSigns(context) async {
     try {
       final querySnapshot = await instance.collection("SmokeSign").get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        await instance.collection("SmokeSign").doc().delete();
+        for (var doc in querySnapshot.docs) {
+          await doc.reference.delete();
+        }
       } else {
         log("no entry in database found");
       }
     } catch (e) {
+      log(e.toString());
+    }
+  }
+
+  Future<void> setAlarm() async {
+    debugPrint("SET ALARM");
+    try {
+      await alarmMethodChannel.invokeMethod("setAlarm");
+    } on PlatformException catch (e) {
       log(e.toString());
     }
   }

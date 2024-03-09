@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:batterylevel_2/firebase_options.dart';
 import 'package:batterylevel_2/smoke_repo.dart';
+import 'package:batterylevel_2/smokesign.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -35,11 +36,13 @@ class _PlatformChannelState extends State<PlatformChannel> {
   }
 
   void subscribeToSmokeSignChanges() {
-    // smokeRepo.smokeSignStream.listen((List<SmokeSign> smokeSigns) {
-    //   if (smokeSigns.isNotEmpty) {
-    //     setAlarm();
-    //   }
-    // });
+    debugPrint("\n\nMETHOD: SUBSCRIBE TO SMOKE SIGN CHANGES\n\n");
+    smokeRepo.smokeSignStream.listen((List<SmokeSign> smokeSigns) {
+      if (smokeSigns.isNotEmpty) {
+        debugPrint("SMOKESIGNS COLLECTION IS NOT EMPTY");
+        setAlarm();
+      }
+    });
   }
 
   void unsubscribeFromSmokeSignChanges() {
@@ -47,6 +50,7 @@ class _PlatformChannelState extends State<PlatformChannel> {
   }
 
   Future<void> setAlarm() async {
+    debugPrint("SET ALARM");
     try {
       await alarmMethodChannel.invokeMethod("setAlarm");
     } on PlatformException catch (e) {
@@ -75,25 +79,29 @@ class _PlatformChannelState extends State<PlatformChannel> {
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: setAlarm,
                       child: const Text('Set Alarm'),
                     ),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: stopAlarm,
                       child: const Text('Stop Alarm'),
                     ),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
                         smokeRepo.createSmokeSign();
                       },
                       child: const Text("create smokesign"),
                     ),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        smokeRepo.deleteSmokeSign(context);
+                        smokeRepo.deleteSmokeSigns(context);
                       },
-                      child: const Text("delete Smokesign"),
+                      child: const Text("delete Smokesigns"),
                     ),
                   ],
                 ),
