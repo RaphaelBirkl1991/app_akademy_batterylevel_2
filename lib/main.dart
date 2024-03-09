@@ -1,5 +1,10 @@
 import 'dart:async';
+import 'dart:developer';
 
+import 'package:batterylevel_2/firebase_options.dart';
+import 'package:batterylevel_2/smoke_repo.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -11,57 +16,41 @@ class PlatformChannel extends StatefulWidget {
 }
 
 class _PlatformChannelState extends State<PlatformChannel> {
-  // static const MethodChannel methodChannel =
-  //     MethodChannel('samples.flutter.io/battery');
-  // static const EventChannel eventChannel =
-  //     EventChannel('samples.flutter.io/charging');
   static const MethodChannel alarmMethodChannel =
-      MethodChannel('samples.flutter.io/alarm');
+      MethodChannel("samples.flutter.io/alarm");
 
-  // String _batteryLevel = 'Battery level: unknown.';
-  // String _chargingStatus = 'Battery status: unknown.';
+  final SmokeRepo smokeRepo = SmokeRepo();
+  StreamSubscription<DocumentSnapshot>? smokeSingSubscription;
 
-  // Future<void> _getBatteryLevel() async {
-  //   String batteryLevel;
-  //   try {
-  //     final int? result = await methodChannel.invokeMethod('getBatteryLevel');
-  //     batteryLevel = 'Battery level: $result%.';
-  //   } on PlatformException catch (e) {
-  //     if (e.code == 'NO_BATTERY') {
-  //       batteryLevel = 'No battery.';
-  //     } else {
-  //       batteryLevel = 'Failed to get battery level.';
-  //     }
-  //   }
-  //   setState(() {
-  //     _batteryLevel = batteryLevel;
-  //   });
-  // }
+  @override
+  void initState() {
+    super.initState();
+    subscribeToSmokeSignChanges();
+  }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   eventChannel.receiveBroadcastStream().listen(_onEvent, onError: _onError);
-  // }
+  @override
+  void dispose() {
+    unsubscribeFromSmokeSignChanges();
+    super.dispose();
+  }
 
-  // void _onEvent(Object? event) {
-  //   setState(() {
-  //     _chargingStatus =
-  //         "Battery status: ${event == 'charging' ? '' : 'dis'}charging.";
-  //   });
-  // }
+  void subscribeToSmokeSignChanges() {
+    // smokeRepo.smokeSignStream.listen((List<SmokeSign> smokeSigns) {
+    //   if (smokeSigns.isNotEmpty) {
+    //     setAlarm();
+    //   }
+    // });
+  }
 
-  // void _onError(Object error) {
-  //   setState(() {
-  //     _chargingStatus = 'Battery status: unknown.';
-  //   });
-  // }
+  void unsubscribeFromSmokeSignChanges() {
+    smokeSingSubscription?.cancel();
+  }
 
   Future<void> setAlarm() async {
     try {
       await alarmMethodChannel.invokeMethod("setAlarm");
     } on PlatformException catch (e) {
-      print(e);
+      log(e.toString());
     }
   }
 
@@ -69,7 +58,7 @@ class _PlatformChannelState extends State<PlatformChannel> {
     try {
       await alarmMethodChannel.invokeMethod("stopAlarm");
     } on PlatformException catch (e) {
-      print(e);
+      log(e.toString());
     }
   }
 
@@ -82,15 +71,10 @@ class _PlatformChannelState extends State<PlatformChannel> {
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              // Text(_batteryLevel, key: const Key('Battery level label')),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    // ElevatedButton(
-                    //   onPressed: _getBatteryLevel,
-                    //   child: const Text('Refresh'),
-                    // ),
                     ElevatedButton(
                       onPressed: setAlarm,
                       child: const Text('Set Alarm'),
@@ -99,18 +83,32 @@ class _PlatformChannelState extends State<PlatformChannel> {
                       onPressed: stopAlarm,
                       child: const Text('Stop Alarm'),
                     ),
+                    ElevatedButton(
+                      onPressed: () {
+                        smokeRepo.createSmokeSign();
+                      },
+                      child: const Text("create smokesign"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        smokeRepo.deleteSmokeSign(context);
+                      },
+                      child: const Text("delete Smokesign"),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          // Text(_chargingStatus),
         ],
       ),
     );
   }
 }
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Future.delayed(const Duration(seconds: 2));
   runApp(const MaterialApp(home: PlatformChannel()));
 }

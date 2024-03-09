@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1629452045",
+    "project_id": "batterylevel2-d30b0",
+    "storage_bucket": "batterylevel2-d30b0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1629452045:android:886e17f4142d77234a6244",
+        "android_client_info": {
+          "package_name": "com.example.batterylevel_2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCE5tG0_bekgg49Mb0LNPiu7ik-eSK21Jc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
