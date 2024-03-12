@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.BitmapFactory
 import android.media.AudioManager
 import android.media.Ringtone
 import android.media.RingtoneManager
@@ -40,7 +41,6 @@ class MainActivity : FlutterActivity() {
         registerAirplaneModeReceiver()
         registerShutdownreceiver()
         registerDoNotDisturbReceiver()
-
     }
 
     override fun onDestroy() {
@@ -51,16 +51,7 @@ class MainActivity : FlutterActivity() {
         unregisterShutdownReceiver()
         unregisterDoNotDisturbReceiver()
     }
-//    private fun showStickyNotification() {
-//        // TODO Auto-generated method stub
-//        var nMN = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-//        val n: Notification = Notification.Builder(this)
-//            .setContentTitle("Whip And Weep")
-//            .setContentText("Whip is On!")
-//            .setSmallIcon(android.R.drawable.ic_secure)
-//            .setOngoing(true)
-//            .build()
-//    }
+
 private fun showStickyNotification() {
     val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -68,15 +59,17 @@ private fun showStickyNotification() {
         createNotificationChannel(notificationManager)
     }
 
-    val notificationIntent = Intent(this, MainActivity::class.java)
-    // val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+   // val notificationIntent = Intent(this, MainActivity::class.java)
+
     val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
     val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
+            .setColor(android.graphics.Color.parseColor("#010536"))
             .setContentTitle("4H Active!")
-            .setContentText("")
+            .setContentText("The App works in the background.")
             .setSmallIcon(android.R.drawable.ic_secure)
+            .setLargeIcon(BitmapFactory.decodeResource(context.resources, com.example.batterylevel_2.R.drawable.logo4h))
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
