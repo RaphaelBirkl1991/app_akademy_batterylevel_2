@@ -1,7 +1,10 @@
 package com.example.batterylevel_2
-import android.app.AlarmManager
+
+import android.R
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -12,21 +15,28 @@ import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.widget.Toast
+import androidx.annotation.RequiresApi
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+
 
 class MainActivity : FlutterActivity() {
 
     private var ringtone: Ringtone? = null
     private val airplaneModeReceiver = AirplaneModeReceiver()
     private val shutdownReceiver = ShutdownReceiver()
-   private val doNotDisturbReceiver = DoNotDisturbReceiver()
+    private val doNotDisturbReceiver = DoNotDisturbReceiver()
+
+    companion object {
+        private const val NOTIFICATION_CHANNEL_ID = "MyStickyNotificationChannel"
+        private const val NOTIFICATION_ID = 123
+        private const val ALARM_CHANNEL = "samples.flutter.io/alarm"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        showStickyNotification()
         registerAirplaneModeReceiver()
         registerShutdownreceiver()
         registerDoNotDisturbReceiver()
@@ -34,13 +44,58 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        removeStickyNotification()
         super.onDestroy()
         unregisterAirplaneModeReceiver()
-        Toast.makeText(this, "App wird geschlossen", Toast.LENGTH_LONG).show()
         vibrate()
         unregisterShutdownReceiver()
         unregisterDoNotDisturbReceiver()
+    }
+//    private fun showStickyNotification() {
+//        // TODO Auto-generated method stub
+//        var nMN = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+//        val n: Notification = Notification.Builder(this)
+//            .setContentTitle("Whip And Weep")
+//            .setContentText("Whip is On!")
+//            .setSmallIcon(android.R.drawable.ic_secure)
+//            .setOngoing(true)
+//            .build()
+//    }
+private fun showStickyNotification() {
+    val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        createNotificationChannel(notificationManager)
+    }
+
+    val notificationIntent = Intent(this, MainActivity::class.java)
+    // val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+    val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+    val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        Notification.Builder(this, NOTIFICATION_CHANNEL_ID)
+            .setContentTitle("4H Active!")
+            .setContentText("")
+            .setSmallIcon(android.R.drawable.ic_secure)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .build()
+    } else {
+        TODO("VERSION.SDK_INT < O")
+    }
+
+    notificationManager.notify(NOTIFICATION_ID, notification)
+}
+    private fun removeStickyNotification() {
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancel(NOTIFICATION_ID)
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationChannel(notificationManager: NotificationManager) {
+        val channelName = "My Sticky Notification Channel"
+        val importance = NotificationManager.IMPORTANCE_LOW
+        val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, importance)
+        notificationManager.createNotificationChannel(channel)
     }
     private fun vibrate() {
         val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -105,7 +160,5 @@ private fun registerDoNotDisturbReceiver() {
     private fun stopAlarm() {
         ringtone?.stop()
     }
-    companion object {
-        private const val ALARM_CHANNEL = "samples.flutter.io/alarm"
-    }
+
 }
