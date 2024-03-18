@@ -15,6 +15,8 @@ class DoNotDisturbReceiver : BroadcastReceiver() {
     private val handler = Handler()
 
     override fun onReceive(context: Context?, intent: Intent?) {
+        Toast.makeText(context, "Nicht stören aktiviert", Toast.LENGTH_LONG).show()
+        vibrate(context)
         if (intent?.action == AudioManager.RINGER_MODE_CHANGED_ACTION) {
             val ringerMode = intent.getIntExtra(AudioManager.EXTRA_RINGER_MODE, AudioManager.RINGER_MODE_NORMAL)
             if (ringerMode == AudioManager.RINGER_MODE_SILENT || ringerMode == AudioManager.RINGER_MODE_VIBRATE) {

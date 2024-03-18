@@ -1,0 +1,4 @@
+<resources>
+    <string name="FOREGROUND_CHANNEL_ID">YourForegroundChannelId</string>
+    <string name="FOREGROUND_CHANNEL_DESCRIPTION">YourChannelDescription</string>
+</resources>
